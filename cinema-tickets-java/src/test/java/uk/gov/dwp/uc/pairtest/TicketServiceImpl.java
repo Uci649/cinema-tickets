@@ -1,9 +1,8 @@
 package uk.gov.dwp.uc.pairtest;
 
+import uk.gov.dwp.uc.pairtest.TicketService;
 import uk.gov.dwp.uc.pairtest.domain.TicketTypeRequest;
 import uk.gov.dwp.uc.pairtest.exception.InvalidPurchaseException;
-import thirdparty.paymentgateway.*;
-import thirdparty.seatbooking.*;
 
 public class TicketServiceImpl implements TicketService {
     /**
@@ -72,7 +71,7 @@ public class TicketServiceImpl implements TicketService {
     *   calculateNoOfSeats method calculates the no.of seats required to reserve.
     *   Infants don't get a seat and hence not included in the final count
     */
-    private void calculateNoOfSeats(){
+    static void calculateNoOfSeats(){
           totalNoOfSeats= totalNoOfAdultTickets + totalNoOfChildren;
     }
 
@@ -84,7 +83,7 @@ public class TicketServiceImpl implements TicketService {
     *   Prices calculated at per the table below
     * IF price changes, variables adultPricePerTicket, childPricePerTicket change
     */
-    private void calculatePrice(){
+    static void calculatePrice(){
       /*|  Ticket Type    |    Price    |
         | ----------------| ----------- |
         |    INFANT       |    0        |
@@ -100,17 +99,13 @@ public class TicketServiceImpl implements TicketService {
            totalAmountToPay = totalAdultPrice + totalChildPrice;
     }
     
-    /*
-    * checkAccountID checks that the Account ID passed is valid
-    * Account ID is expected to Long more than 0
-    */
     private boolean checkAccountID(Long accID){
         boolean boolcheckAccountID = false;
         if (accID > 0) boolcheckAccountID = true;
         return boolcheckAccountID;
     }
 
-    @Override
+    //@Override
     public void purchaseTickets(Long accountId, TicketTypeRequest... ticketTypeRequests) throws InvalidPurchaseException {
         try
         {
@@ -119,15 +114,10 @@ public class TicketServiceImpl implements TicketService {
                 initializeValues(ticketTypeRequests);
                     if (validateRequest())
                     {
-                        //Calculate the total price and call the third party paymentgateway
-                        calculatePrice();
-                        TicketPaymentServiceImpl objPayment = new TicketPaymentServiceImpl();
-                        objPayment.makePayment(totalNoOfTickets, totalAmountToPay); 
-                        
-                        //Calculate the total no.of seats and call the third party reserveSeat
                         calculateNoOfSeats();
-                        SeatReservationServiceImpl objSeat = new SeatReservationServiceImpl();
-                        objSeat.reserveSeat(accountId,totalNoOfSeats);
+                        //System.out.println("Total no of seats  "+totalNoOfSeats);
+                        calculatePrice();
+                        //System.out.println("Total price to pay  "+totalAmountToPay);
                     }else{
                         throw new Exception();
                     }
